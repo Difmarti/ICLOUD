@@ -47,7 +47,6 @@ services:
       - .env
     environment:
       - DATABASE_URL=postgres://$USER:$PASSWORD@postgres:$DB_PORT/$DB_NAME
-      - DEBUG=$DEBUG
 
   redis:
     hostname: redis
