@@ -4,7 +4,7 @@ services:
     restart: always
     image: postgres:11.5
     volumes:
-      - /var/lib/postgresql
+      - /docker/icloud:/var/lib/postgresql
     env_file:
       - .env
     environment:
@@ -17,10 +17,10 @@ services:
     ports:
       - "8000:80"
     volumes:
-      - ./config/nginx:/etc/nginx/conf.d
-      - ./static:/static
-      - ./media:/media
-      - ./nginx_logs:/var/log/nginx/
+      - /docker/icloud/config/nginx:/etc/nginx/conf.d
+      - /docker/icloud/static:/static
+      - /docker/icloud/media:/media
+      - /docker/icloud/nginx_logs:/var/log/nginx/
     depends_on:
       - web
 
@@ -33,10 +33,10 @@ services:
       - ./wait-for-postgres.sh
       - ./entrypoint.sh
     volumes:
-      - .:/src
-      - ./static:/static
-      - ./media:/media
-      - ./nginx_logs:/nginx_logs
+      - /docker/icloud:/src
+      - /docker/icloud/static:/static
+      - /docker/icloud/media:/media
+      - /docker/icloud/nginx_logs:/nginx_logs
     expose:
       - "80"
     links:
