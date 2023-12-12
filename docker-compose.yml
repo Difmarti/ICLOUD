@@ -57,7 +57,6 @@ services:
 
   celery_worker:
     restart: always
-    image: maciekj
     command: ./run_celery_worker.sh
     environment:
       - DATABASE_HOST=postgres
