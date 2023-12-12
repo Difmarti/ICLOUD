@@ -1,26 +1,26 @@
-version: '3'
+version: '2'
 services:
   postgres:
     restart: always
     image: postgres:11.5
     volumes:
-      - /docker/icloud:/var/lib/postgresql
+      - /var/lib/postgresql
+    env_file:
+      - .env
     environment:
-      - POSTGRES_PASSWORD=${PASSWORD:-postgres}
-      - POSTGRES_USER=${USER:-postgres}
-      - POSTGRES_DB={$DB_NAME:-postgres}
-    ports:
-      - 5432-5432
+      - POSTGRES_PASSWORD=$PASSWORD
+      - POSTGRES_USER=$USER
+      - POSTGRES_DB=$DB_NAME
 
   nginx:
     image: nginx:latest
     ports:
       - "8000:80"
     volumes:
-      - /docker/icloud/config/nginx:/etc/nginx/conf.d
-      - /docker/icloud/static:/static
-      - /docker/icloud/media:/media
-      - /docker/icloud/nginx_logs:/var/log/nginx/
+      - ./config/nginx:/etc/nginx/conf.d
+      - ./static:/static
+      - ./media:/media
+      - ./nginx_logs:/var/log/nginx/
     depends_on:
       - web
 
@@ -33,18 +33,21 @@ services:
       - ./wait-for-postgres.sh
       - ./entrypoint.sh
     volumes:
-      - /docker/icloud:/src
-      - /docker/icloud/static:/static
-      - /docker/icloud/media:/media
-      - /docker/icloud/nginx_logs:/nginx_logs
+      - .:/src
+      - ./static:/static
+      - ./media:/media
+      - ./nginx_logs:/nginx_logs
     expose:
       - "80"
     links:
       - postgres
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgres://$USER:$PASSWORD@postgres:$DB_PORT/$DB_NAME
+      - DEBUG=$DEBUG
 
   redis:
     hostname: redis
@@ -55,4 +58,19 @@ services:
     ports:
       - "6379:6379"
 
-
+  celery_worker:
+    restart: always
+    image: maciekj
+    command: ./run_celery_worker.sh
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_URL=postgres://$USER:$PASSWORD@postgres:$DB_PORT/$DB_NAME
+    links:
+      - postgres
+      - redis
+    depends_on:
+      - redis
+    volumes_from:
+      - web
+    env_file:
+      - .env
